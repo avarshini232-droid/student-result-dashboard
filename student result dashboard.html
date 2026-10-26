@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exp 8 - Student Result Dashboard</title>
+<style>
+    body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
+    h1 { text-align: center; color: #2c3e50; }
+    .container { display: flex; gap: 20px; max-width: 1200px; margin: auto; flex-wrap: wrap; }
+    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); flex: 1; min-width: 320px; }
+    input, button { width: 100%; padding: 10px; margin: 6px 0; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; }
+    button { background: #3498db; color: white; border: none; cursor: pointer; font-weight: bold; }
+    button:hover { background: #2980b9; }
+    #search { border: 2px solid #3498db; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+    th { background: #3498db; color: white; }
+    .pass { color: green; font-weight: bold; }
+    .fail { color: red; font-weight: bold; }
+    .badge { padding: 2px 8px; border-radius: 20px; background: #eaf2ff; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<h1>Interactive Student Result Dashboard</h1>
+
+<div class="container">
+    <div class="card">
+        <h3>Add Student</h3>
+        <input type="text" id="sName" placeholder="Student Name">
+        <input type="text" id="sRoll" placeholder="Roll No">
+        <input type="text" id="sMarks" placeholder="Marks comma separated (e.g. 85,90,78)">
+        <button onclick="addStudent()">Add Student</button>
+        <hr>
+        <h3>Search Student</h3>
+        <input type="text" id="search" placeholder="Search by Name or Roll No..." onkeyup="searchStudent()">
+    </div>
+
+    <div class="card">
+        <h3>Student Records</h3>
+        <table>
+            <thead>
+                <tr><th>Roll</th><th>Name</th><th>Marks</th><th>Total</th><th>Average</th><th>Result</th></tr>
+            </thead>
+            <tbody id="resultBody"></tbody>
+        </table>
+        <p id="count"></p>
+    </div>
+</div>
+
+<script>
+// --- Data Structures ---
+// Using Array to store all students
+let students = [
+    { roll: "101", name: "Alice", marks: [85, 90, 78] },
+    { roll: "102", name: "Bob", marks: [45, 55, 60] },
+    { roll: "103", name: "John", marks: [92, 88, 95] }
+];
+
+// --- Functions ---
+
+function calculateResult(marks) {
+    // Array methods: reduce
+    let total = marks.reduce((a, b) => a + b, 0);
+    let avg = (total / marks.length).toFixed(2);
+    let result = avg >= 50 ? "Pass" : "Fail";
+    return { total, avg, result };
+}
+
+function displayStudents(data = students) {
+    let tbody = document.getElementById("resultBody");
+    tbody.innerHTML = "";
+    
+    data.forEach(student => {
+        let { total, avg, result } = calculateResult(student.marks);
+        let row = `<tr>
+            <td><span class="badge">${student.roll}</span></td>
+            <td>${student.name}</td>
+            <td>[${student.marks.join(", ")}]</td>
+            <td>${total}</td>
+            <td>${avg}</td>
+            <td class="${result === 'Pass' ? 'pass' : 'fail'}">${result}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+    });
+    document.getElementById("count").innerText = `Total Students: ${data.length}`;
+}
+
+function addStudent() {
+    let name = document.getElementById("sName").value.trim();
+    let roll = document.getElementById("sRoll").value.trim();
+    let marksStr = document.getElementById("sMarks").value.trim();
+    
+    if (!name || !roll || !marksStr) {
+        alert("Please fill all fields");
+        return;
+    }
+    
+    // Convert marks string to Array of Numbers
+    let marks = marksStr.split(",").map(m => parseInt(m.trim())).filter(n => !isNaN(n));
+    
+    if (marks.length === 0) {
+        alert("Enter valid marks");
+        return;
+    }
+    
+    // Using Object to store student details
+    let newStudent = {
+        roll: roll,
+        name: name,
+        marks: marks  // Array for marks storage
+    };
+    
+    students.push(newStudent); // Array manipulation
+    displayStudents();
+    
+    // clear inputs
+    document.getElementById("sName").value = "";
+    document.getElementById("sRoll").value = "";
+    document.getElementById("sMarks").value = "";
+}
+
+function searchStudent() {
+    let query = document.getElementById("search").value.toLowerCase();
+    // Array filter + Object property search
+    let filtered = students.filter(s => 
+        s.name.toLowerCase().includes(query) || 
+        s.roll.toLowerCase().includes(query)
+    );
+    displayStudents(filtered);
+}
+
+// Initial Load
+displayStudents();
+</script>
+</body>
+</html>
